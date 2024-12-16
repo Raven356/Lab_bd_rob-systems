@@ -1,0 +1,41 @@
+﻿@model BlogPost.Models.Blogs.EditBlogModel
+
+@{
+    ViewData["Title"] = "Edit Blog";
+}
+
+<h1>Create Blog</h1>
+
+<form asp-action="Edit" method="post">
+    <div class="form-group">
+        <label for="Text">Text: </label>
+        <textarea name="Text" class="form-control">@Model.Text</textarea>
+        <span asp-validation-for="Text" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="Title">Title: </label>
+        <input name="Title" class="form-control" value="@Model.Title" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="Category">Category: </label>
+        <select name="Category" class="form-control">
+            @foreach (var category in (IEnumerable<BlogPostBll.Enums.CategoryEnum>)ViewBag.Categories)
+            {
+                <option value="@category" 
+                        @if (category == Model.Category) { <text>selected</text> }>
+                    @category
+                </option>
+            }
+        </select>
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+
+    <input hidden name="Id" value="@Model.Id" />
+
+    <input value="1" name="AuthorId" hidden class="form-control" type="number" />
+
+    <button type="submit" class="btn btn-primary">Edit</button>
+</form>

@@ -1,0 +1,36 @@
+﻿@model BlogPost.Models.Blogs.CreateBlogModel
+
+@{
+    ViewData["Title"] = "Create Blog";
+}
+
+<h1>Create Blog</h1>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label for="Text">Text: </label>
+        <textarea name="Text" class="form-control"></textarea>
+        <span asp-validation-for="Text" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="Title">Title: </label>
+        <input name="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="Category">Category: </label>
+        <select name="Category" class="form-control">
+            @foreach (var category in (IEnumerable<BlogPostBll.Enums.CategoryEnum>)ViewBag.Categories)
+            {
+                <option value="@category">@category</option>
+            }
+        </select>
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+
+    <input value="1" name="AuthorId" hidden class="form-control" type="number" />
+
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>

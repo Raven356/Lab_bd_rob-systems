@@ -1,0 +1,14 @@
+﻿@model IEnumerable<dynamic>
+
+<h1>Blogs</h1>
+<ul>
+    @foreach (var blog in Model)
+    {
+        <li>
+            <strong>@blog.Title</strong><br />
+            @blog.Text<br />
+            <a href="/Blogs/Details/@blog.Id">View Details</a>
+            <a href="/Blogs/Edit/@blog.Id">Edit</a>
+        </li>
+    }
+</ul>
