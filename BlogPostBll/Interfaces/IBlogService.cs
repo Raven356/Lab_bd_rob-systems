@@ -6,7 +6,7 @@ namespace BlogPostBll.Interfaces
     {
         public Task<Guid> CreateBlogAsync(Blog newBlog);
 
-        public Task<IEnumerable<Blog>> GetAllAsync();
+        public Task<IEnumerable<Blog>> GetAllAsync(string? name, string? category);
 
         public Task<Blog> GetByIdAsync(Guid id);
 

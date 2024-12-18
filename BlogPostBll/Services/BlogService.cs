@@ -76,11 +76,23 @@ namespace BlogPostBll.Services
             return editBlog.Id;
         }
 
-        public async Task<IEnumerable<Blog>> GetAllAsync()
+        public async Task<IEnumerable<Blog>> GetAllAsync(string? name, string? category)
         {
             var blogs = context.GetCollection<BsonDocument>("blogs");
 
-            var blogDocuments = await blogs.Find(new BsonDocument()).ToListAsync();
+            var filter = new BsonDocument();
+
+            if (name != null)
+            {
+                filter.Add("Title", new BsonRegularExpression(name, "i"));
+            }
+
+            if (category != null)
+            {
+                filter.Add("Category", category);
+            }
+
+            var blogDocuments = await (await blogs.FindAsync(filter)).ToListAsync();
 
             var result = blogDocuments.Select(doc => new Blog
             {

@@ -10,14 +10,16 @@ namespace BlogPost.Controllers
     {
         private readonly IBlogService blogService;
 
-        public BlogsController(IBlogService blogService) 
+        public BlogsController(IBlogService blogService)
         {
             this.blogService = blogService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? name, string? category)
         {
-            var blogs = await blogService.GetAllAsync();
+            ViewBag.Categories = Enum.GetValues(typeof(CategoryEnum));
+
+            var blogs = await blogService.GetAllAsync(name, category);
 
             return View(blogs);
         }
