@@ -15,7 +15,8 @@ namespace BlogPost
             // Add services to the container.
             builder.Services.AddRazorPages();
 
-            builder.Services.AddSingleton<IBlogService, BlogService>();
+            builder.Services.AddSingleton<IBlogService, BlogService>()
+                .AddSingleton<ICommentsService, CommentsService>();
 
             Setup.RegisterServices(builder.Services, builder.Configuration);
 

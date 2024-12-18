@@ -2,6 +2,7 @@
 using BlogPost.Models.Blogs;
 using BlogPostBll.Enums;
 using BlogPostBll.Interfaces;
+using BlogPostBll.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogPost.Controllers
@@ -9,10 +10,12 @@ namespace BlogPost.Controllers
     public class BlogsController : Controller
     {
         private readonly IBlogService blogService;
+        private readonly ICommentsService commentsService;
 
-        public BlogsController(IBlogService blogService)
+        public BlogsController(IBlogService blogService, ICommentsService commentsService)
         {
             this.blogService = blogService;
+            this.commentsService = commentsService;
         }
 
         public async Task<IActionResult> Index(string? name, string? category)
@@ -65,8 +68,16 @@ namespace BlogPost.Controllers
         public async Task<IActionResult> Details(Guid id)
         {
             var blog = await blogService.GetByIdAsync(id);
+            var comments = await commentsService.GetCommentsForBlog(id);
 
-            return View(new DetailsBlogModel { Id = id, Category = blog.Category, Text = blog.Text, Title = blog.Title});
+            return View(new DetailsBlogModel
+            {
+                Id = id,
+                Category = blog.Category,
+                Text = blog.Text,
+                Title = blog.Title,
+                Comments = comments
+            });
         }
 
         [HttpPost]

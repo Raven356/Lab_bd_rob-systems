@@ -1,4 +1,5 @@
 ﻿using BlogPostBll.Enums;
+using BlogPostBll.Models;
 
 namespace BlogPost.Models.Blogs
 {
@@ -11,5 +12,7 @@ namespace BlogPost.Models.Blogs
         public string Title { get; set; }
 
         public CategoryEnum Category { get; set; }
+
+        public IEnumerable<Comment> Comments { get; set; }
     }
 }

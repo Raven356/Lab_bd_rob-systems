@@ -1,5 +1,4 @@
 ﻿@using BlogPost.Models.Blogs
-
 @model DetailsBlogModel
 
 <!DOCTYPE html>
@@ -9,6 +8,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Details Page</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        /* Remove spacing between comments but leave space at the bottom */
+        .list-group-item {
+            margin-bottom: 0; /* Remove the margin between list items */
+            padding-bottom: 10px; /* Add bottom padding to create space below each comment */
+        }
+
+        .comments-section {
+            margin-bottom: 25px;
+        }
+
+        /* Hide action buttons by default */
+        .comment-actions {
+            display: none;
+            position: absolute;
+            right: 10px;
+            top: 15px;
+        }
+
+        /* Show action buttons on hover */
+        .list-group-item:hover .comment-actions {
+            display: block;
+        }
+
+        .comment-container {
+            position: relative;
+        }
+
+        /* Make the textarea editable */
+        .editable-text {
+            width: 100%;
+            height: auto;
+            display: none;
+            margin-bottom: 10px;
+        }
+
+        /* Show the Save button in edit mode */
+        .edit-mode .editable-text {
+            display: block;
+        }
+
+        .edit-mode .comment-text {
+            display: none;
+        }
+
+        /* Position the Save button below the editable field */
+        .edit-mode .save-btn {
+            display: inline-block;
+            margin-top: 10px;
+            width: 100%; /* Ensure it takes up full width */
+        }
+
+        /* Hide the Edit and Delete buttons in edit mode */
+        .edit-mode .edit-btn,
+        .edit-mode .delete-btn {
+            display: none;
+        }
+
+        /* Show the Edit and Delete buttons after saving */
+        .saved-mode .edit-btn,
+        .saved-mode .delete-btn {
+            display: inline-block;
+        }
+
+        /* Action buttons styling */
+        .comment-actions .btn {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+        }
+
+        /* Space between comment text and buttons */
+        .comment-text {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
@@ -41,8 +115,169 @@
                 </dl>
             </div>
         </div>
+
+        <!-- Button to create a comment -->
+        <h3 class="mt-4">Add a Comment</h3>
+        <form method="post" action="/Comments/Create/@Model.Id">
+            <div class="mb-3">
+                <label for="Text" class="form-label">Your Comment:</label>
+                <textarea id="Text" name="text" class="form-control" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+        </form>
+
+        <!-- Displaying existing comments -->
+        <div class="comments-section">
+            <h3 class="mt-4">Comments</h3>
+            @if (Model.Comments != null && Model.Comments.Any())
+            {
+                <ul class="list-group">
+                    @foreach (var comment in Model.Comments)
+                    {
+                        <li class="list-group-item comment-container" data-comment-id="@comment.Id" data-author-id="@comment.AuthorId">
+                            <div class="comment-text">
+                                <strong>Author @comment.AuthorId:</strong> @comment.Text
+                            </div>
+
+                            <!-- Editable textarea -->
+                            <textarea class="editable-text" rows="3">@comment.Text</textarea>
+
+                            <!-- Action buttons (appear on hover) -->
+                            <div class="comment-actions">
+                                <!-- Edit button -->
+                                <a href="#" class="btn btn-warning btn-sm edit-btn">Edit</a>
+
+                                <!-- Delete button -->
+                                <form method="post" action="/Comments/Delete/@comment.Id" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm delete-btn">Delete</button>
+                                </form>
+                            </div>
+
+                            <div class="comment-save">
+                                <!-- Save button appears after edit -->
+                                <button type="button" class="btn btn-success btn-sm save-btn" style="display:none;">Save</button>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No comments yet.</p>
+            }
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Edit button click handler
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const commentContainer = this.closest('.comment-container');
+                const saveButton = commentContainer.querySelector('.save-btn');
+                const textarea = commentContainer.querySelector('.editable-text');
+                const commentText = commentContainer.querySelector('.comment-text');
+                const editButton = commentContainer.querySelector('.edit-btn');
+                const deleteButton = commentContainer.querySelector('.delete-btn');
+
+                // Switch to edit mode
+                commentContainer.classList.add('edit-mode');
+
+                // Focus on the textarea
+                textarea.focus();
+
+                // Hide comment text and show textarea and Save button
+                commentText.style.display = 'none';
+                textarea.style.display = 'block';
+                saveButton.style.display = 'inline-block';
+                editButton.style.display = 'none';
+                deleteButton.style.display = 'none';
+            });
+        });
+
+        // Save button click handler
+        document.querySelectorAll('.save-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const commentContainer = this.closest('.comment-container');
+                const commentId = commentContainer.getAttribute('data-comment-id');
+                const text = commentContainer.querySelector('.editable-text').value;
+                const commentText = commentContainer.querySelector('.comment-text');
+                const authorId = commentContainer.getAttribute('data-author-id');
+                const editButton = commentContainer.querySelector('.edit-btn');
+                const deleteButton = commentContainer.querySelector('.delete-btn');
+
+                // Send POST request to save edited comment
+                fetch('/Comments/Edit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ commentId: commentId, text: text }),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // After save, switch to saved mode
+                        commentContainer.classList.remove('edit-mode');
+                        commentContainer.classList.add('saved-mode');
+
+                        // Update the displayed text and hide editable textarea
+                        commentText.innerHTML = `Author ${authorId}: ${text}`;
+                        commentText.style.display = 'block';  // Show the comment text
+
+                        // Hide the editable textarea and save button
+                        const editableText = commentContainer.querySelector('.editable-text');
+                        const saveButton = commentContainer.querySelector('.save-btn');
+                        editableText.style.display = 'none';
+                        saveButton.style.display = 'none';  // Hide the save button after saving
+                        editButton.style.display = 'inline-block';
+                        deleteButton.style.display = 'inline-block';
+                    } else {
+                        alert('Failed to save comment');
+                    }
+                })
+                .catch(err => {
+                    alert('Error: ' + err);
+                });
+            });
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const commentContainer = this.closest('.comment-container');
+                const commentId = commentContainer.getAttribute('data-comment-id');
+
+                if (confirm('Are you sure you want to delete this comment?')) {
+                    fetch(`/Comments/Delete?commentId=${commentId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            commentContainer.remove();
+
+                            // Check if there are any comments left
+                            const commentsSection = document.querySelector('.comments-section');
+                            const remainingComments = commentsSection.querySelectorAll('.list-group-item');
+
+                            if (remainingComments.length === 0) {
+                                commentsSection.innerHTML = '<h3 class="mt-4">Comments</h3><p>No comments yet.</p>';
+                            }
+                        } else {
+                            alert('Failed to delete comment');
+                        }
+                    })
+                    .catch(err => {
+                        alert('Error: ' + err);
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
