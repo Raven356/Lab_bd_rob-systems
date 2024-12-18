@@ -4,12 +4,14 @@ namespace BlogPostBll.Interfaces
 {
     public interface IBlogService
     {
-        public Guid CreateBlog(Blog newBlog);
+        public Task<Guid> CreateBlogAsync(Blog newBlog);
 
-        public IEnumerable<Blog> GetAll();
+        public Task<IEnumerable<Blog>> GetAllAsync();
 
-        public Blog GetById(Guid id);
+        public Task<Blog> GetByIdAsync(Guid id);
 
-        public Guid EditBlog(Blog editBlog);
+        public Task<Guid> EditBlogAsync(Blog editBlog);
+
+        public Task DeleteBlogAsync(Guid id);
     }
 }

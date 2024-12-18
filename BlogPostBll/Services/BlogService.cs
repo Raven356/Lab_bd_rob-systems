@@ -16,7 +16,7 @@ namespace BlogPostBll.Services
             this.context = context;
         }
 
-        public Guid CreateBlog(Blog newBlog)
+        public async Task<Guid> CreateBlogAsync(Blog newBlog)
         {
             var blogs = context.GetCollection<BsonDocument>("blogs");
 
@@ -30,17 +30,26 @@ namespace BlogPostBll.Services
                 { "CreatedAt", DateTime.UtcNow }
             };
 
-            blogs.InsertOne(blogDocument);
+            await blogs.InsertOneAsync(blogDocument);
 
             var insertedId = blogDocument["_id"];
             return Guid.Parse(insertedId.ToString());
         }
 
-        public Guid EditBlog(Blog editBlog)
+        public async Task DeleteBlogAsync(Guid id)
         {
             var blogs = context.GetCollection<BsonDocument>("blogs");
 
-            var blogDocument = blogs.Find(new BsonDocument("_id", editBlog.Id.ToString())).FirstOrDefault();
+            var blogDocument = await(await blogs.FindAsync(new BsonDocument("_id", id.ToString()))).FirstOrDefaultAsync();
+
+            await blogs.DeleteOneAsync(blogDocument);
+        }
+
+        public async Task<Guid> EditBlogAsync(Blog editBlog)
+        {
+            var blogs = context.GetCollection<BsonDocument>("blogs");
+
+            var blogDocument = await (await blogs.FindAsync(new BsonDocument("_id", editBlog.Id.ToString()))).FirstOrDefaultAsync();
 
             if (blogDocument == null)
             {
@@ -54,7 +63,7 @@ namespace BlogPostBll.Services
                 .Set("AuthorId", editBlog.AuthorId)
                 .Set("CreatedAt", DateTime.UtcNow);
 
-            var result = blogs.UpdateOne(
+            var result = await blogs.UpdateOneAsync(
                 new BsonDocument("_id", editBlog.Id.ToString()),
                 updateDefinition
             );
@@ -67,11 +76,11 @@ namespace BlogPostBll.Services
             return editBlog.Id;
         }
 
-        public IEnumerable<Blog> GetAll()
+        public async Task<IEnumerable<Blog>> GetAllAsync()
         {
             var blogs = context.GetCollection<BsonDocument>("blogs");
 
-            var blogDocuments = blogs.Find(new BsonDocument()).ToList();
+            var blogDocuments = await blogs.Find(new BsonDocument()).ToListAsync();
 
             var result = blogDocuments.Select(doc => new Blog
             {
@@ -85,11 +94,11 @@ namespace BlogPostBll.Services
             return result;
         }
 
-        public Blog GetById(Guid id)
+        public async Task<Blog> GetByIdAsync(Guid id)
         {
             var blogs = context.GetCollection<BsonDocument>("blogs");
 
-            var blogDocument = blogs.Find(new BsonDocument("_id", id.ToString())).FirstOrDefault();
+            var blogDocument = await (await blogs.FindAsync(new BsonDocument("_id", id.ToString()))).FirstOrDefaultAsync();
 
             if (blogDocument == null)
             {

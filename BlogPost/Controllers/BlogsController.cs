@@ -15,9 +15,9 @@ namespace BlogPost.Controllers
             this.blogService = blogService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var blogs = blogService.GetAll();
+            var blogs = await blogService.GetAllAsync();
 
             return View(blogs);
         }
@@ -29,15 +29,15 @@ namespace BlogPost.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(CreateBlogModel createBlogModel)
+        public async Task<IActionResult> Create(CreateBlogModel createBlogModel)
         {
-            var newBlogId = blogService.CreateBlog(BlogMapper.Map(createBlogModel));
+            var newBlogId = await blogService.CreateBlogAsync(BlogMapper.Map(createBlogModel));
             return RedirectToAction("Details", new { id = newBlogId });
         }
 
-        public IActionResult Edit(Guid id)
+        public async Task<IActionResult> Edit(Guid id)
         {
-            var blog = blogService.GetById(id);
+            var blog = await blogService.GetByIdAsync(id);
             ViewBag.Categories = Enum.GetValues(typeof(CategoryEnum));
 
             var viewModel = new EditBlogModel
@@ -53,9 +53,9 @@ namespace BlogPost.Controllers
         }
 
         [HttpPost]
-        public IActionResult Edit(EditBlogModel editBlogModel)
+        public async Task<IActionResult> Edit(EditBlogModel editBlogModel)
         {
-            var id = blogService.EditBlog(BlogMapper.Map(editBlogModel));
+            var id = await blogService.EditBlogAsync(BlogMapper.Map(editBlogModel));
 
             return RedirectToAction("Details", new { id });
         }
@@ -63,6 +63,14 @@ namespace BlogPost.Controllers
         public IActionResult Details(int id)
         {
             return View(new DetailsBlogModel { Id = id, Category = CategoryEnum.Robotics, Text = "test"});
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(Guid id) 
+        {
+            await blogService.DeleteBlogAsync(id);
+
+            return RedirectToAction("Index");
         }
     }
 }
