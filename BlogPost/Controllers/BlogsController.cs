@@ -60,9 +60,11 @@ namespace BlogPost.Controllers
             return RedirectToAction("Details", new { id });
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(Guid id)
         {
-            return View(new DetailsBlogModel { Id = id, Category = CategoryEnum.Robotics, Text = "test"});
+            var blog = await blogService.GetByIdAsync(id);
+
+            return View(new DetailsBlogModel { Id = id, Category = blog.Category, Text = blog.Text, Title = blog.Title});
         }
 
         [HttpPost]
@@ -70,7 +72,7 @@ namespace BlogPost.Controllers
         {
             await blogService.DeleteBlogAsync(id);
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", controllerName: "Blogs");
         }
     }
 }

@@ -4,33 +4,66 @@
     ViewData["Title"] = "Create Blog";
 }
 
-<h1>Create Blog</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Create New Blog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Blogs">Blog Platform</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Blogs">Home</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-<form asp-action="Create" method="post">
-    <div class="form-group">
-        <label for="Text">Text: </label>
-        <textarea name="Text" class="form-control"></textarea>
-        <span asp-validation-for="Text" class="text-danger"></span>
+    <div class="container d-flex justify-content-center">
+        <div class="col-md-6">
+            <h1 class="mb-4 text-center">Create Blog</h1>
+
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label for="Title" class="form-label">Title:</label>
+                    <input name="Title" class="form-control" required />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Text" class="form-label">Text:</label>
+                    <textarea name="Text" class="form-control" rows="5" required></textarea>
+                    <span asp-validation-for="Text" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Category" class="form-label">Category:</label>
+                    <select name="Category" class="form-select">
+                        @foreach (var category in (IEnumerable<BlogPostBll.Enums.CategoryEnum>)ViewBag.Categories)
+                        {
+                            <option value="@category">@category</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Category" class="text-danger"></span>
+                </div>
+
+                <input type="hidden" name="AuthorId" value="1" />
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <a href="/Blogs" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="Title">Title: </label>
-        <input name="Title" class="form-control" />
-        <span asp-validation-for="Title" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label for="Category">Category: </label>
-        <select name="Category" class="form-control">
-            @foreach (var category in (IEnumerable<BlogPostBll.Enums.CategoryEnum>)ViewBag.Categories)
-            {
-                <option value="@category">@category</option>
-            }
-        </select>
-        <span asp-validation-for="Category" class="text-danger"></span>
-    </div>
-
-    <input value="1" name="AuthorId" hidden class="form-control" type="number" />
-
-    <button type="submit" class="btn btn-primary">Create</button>
-</form>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
