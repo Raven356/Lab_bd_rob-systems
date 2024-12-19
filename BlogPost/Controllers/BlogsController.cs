@@ -27,14 +27,14 @@ namespace BlogPost.Controllers
             return View(blogs);
         }
 
-        [Authorize]
+        //[Authorize]
         public IActionResult Create()
         {
             ViewBag.Categories = Enum.GetValues(typeof(CategoryEnum));
             return View();
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(CreateBlogModel createBlogModel)
         {
@@ -42,7 +42,7 @@ namespace BlogPost.Controllers
             return RedirectToAction("Details", new { id = newBlogId });
         }
 
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> Edit(Guid id)
         {
             var blog = await blogService.GetByIdAsync(id);
@@ -60,7 +60,7 @@ namespace BlogPost.Controllers
             return View(viewModel);
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> Edit(EditBlogModel editBlogModel)
         {
@@ -84,7 +84,7 @@ namespace BlogPost.Controllers
             });
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete(Guid id) 
         {

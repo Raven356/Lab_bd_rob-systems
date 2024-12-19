@@ -14,7 +14,7 @@ namespace BlogPost.Controllers
             this.commentsService = commentsService;
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(Guid id, string text)
         {
@@ -23,7 +23,7 @@ namespace BlogPost.Controllers
             return RedirectToAction("Details", controllerName: "Blogs", new { id });
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> Edit([FromBody] CommentEditModel commentEdit)
         {
@@ -32,7 +32,7 @@ namespace BlogPost.Controllers
             return Ok();
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete([FromQuery] Guid commentId)
         {
