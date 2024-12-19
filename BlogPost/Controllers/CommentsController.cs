@@ -1,5 +1,6 @@
 ﻿using BlogPost.Models.Comments;
 using BlogPostBll.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogPost.Controllers
@@ -13,6 +14,7 @@ namespace BlogPost.Controllers
             this.commentsService = commentsService;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(Guid id, string text)
         {
@@ -21,6 +23,7 @@ namespace BlogPost.Controllers
             return RedirectToAction("Details", controllerName: "Blogs", new { id });
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Edit([FromBody] CommentEditModel commentEdit)
         {
@@ -29,6 +32,7 @@ namespace BlogPost.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete([FromQuery] Guid commentId)
         {

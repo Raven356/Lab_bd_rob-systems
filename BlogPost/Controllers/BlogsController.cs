@@ -2,7 +2,7 @@
 using BlogPost.Models.Blogs;
 using BlogPostBll.Enums;
 using BlogPostBll.Interfaces;
-using BlogPostBll.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogPost.Controllers
@@ -27,12 +27,14 @@ namespace BlogPost.Controllers
             return View(blogs);
         }
 
+        [Authorize]
         public IActionResult Create()
         {
             ViewBag.Categories = Enum.GetValues(typeof(CategoryEnum));
             return View();
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(CreateBlogModel createBlogModel)
         {
@@ -40,6 +42,7 @@ namespace BlogPost.Controllers
             return RedirectToAction("Details", new { id = newBlogId });
         }
 
+        [Authorize]
         public async Task<IActionResult> Edit(Guid id)
         {
             var blog = await blogService.GetByIdAsync(id);
@@ -57,6 +60,7 @@ namespace BlogPost.Controllers
             return View(viewModel);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Edit(EditBlogModel editBlogModel)
         {
@@ -80,6 +84,7 @@ namespace BlogPost.Controllers
             });
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete(Guid id) 
         {
