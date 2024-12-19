@@ -1,6 +1,9 @@
 using BlogPostBll;
 using BlogPostBll.Interfaces;
 using BlogPostBll.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace BlogPost
 {
@@ -16,7 +19,27 @@ namespace BlogPost
             builder.Services.AddRazorPages();
 
             builder.Services.AddSingleton<IBlogService, BlogService>()
-                .AddSingleton<ICommentsService, CommentsService>();
+                .AddSingleton<ICommentsService, CommentsService>()
+                .AddSingleton<IUserService, UserService>();
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = "BlogPost", // Match the issuer from token generation
+                    ValidAudience = "BlogPost", // Match the audience from token generation
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("0aK6oXPilC"))
+                };
+            });
 
             Setup.RegisterServices(builder.Services, builder.Configuration);
 
