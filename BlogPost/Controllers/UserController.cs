@@ -18,6 +18,11 @@ namespace BlogPost.Controllers
             this.userService = userService;
         }
 
+        public IActionResult Index()
+        {
+            return View();
+        }
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginModel loginModel)
         {
@@ -40,6 +45,12 @@ namespace BlogPost.Controllers
             await userService.RegisterAsync(UserMapper.Map(registerModel));
 
             return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register()
+        {         
+            return View();
         }
 
         private string GenerateJwtToken(string email)
