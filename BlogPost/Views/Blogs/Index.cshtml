@@ -1,5 +1,4 @@
-﻿@model IEnumerable<BlogPostBll.Models.Blog>
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -8,36 +7,36 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
         ul {
-            list-style-type: none;
-            padding: 0;
+        list-style-type: none;
+        padding: 0;
         }
 
         li {
-            position: relative;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 10px;
-            transition: background-color 0.3s;
+        position: relative;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 10px;
+        transition: background-color 0.3s;
         }
 
-            li:hover {
-                background-color: #f8f9fa;
-            }
+        li:hover {
+        background-color: #f8f9fa;
+        }
 
-            li .action-buttons {
-                display: none;
-                position: absolute;
-                right: 10px;
-                top: 15px;
-            }
+        li .action-buttons {
+        display: none;
+        position: absolute;
+        right: 10px;
+        top: 15px;
+        }
 
-            li:hover .action-buttons {
-                display: block;
-            }
+        li:hover .action-buttons {
+        display: block;
+        }
 
         #filters {
-            display: none;
+        display: none;
         }
     </style>
 </head>
@@ -51,7 +50,9 @@
                         <a class="nav-link" href="/Blogs">Home</a>
                     </li>
                 </ul>
-                <a href="/Blogs/Create" class="btn btn-primary">Create New Post</a>
+                <a id="createPostButton" class="btn btn-primary">Create New Post</a>
+                <a id="loginButton" class="btn btn-secondary" href="/User/Login">Login</a>
+                <a id="logoutButton" class="btn btn-danger" style="display: none;">Logout</a>
             </div>
         </div>
     </nav>
@@ -81,10 +82,6 @@
                 </form>
             </div>
 
-            <button class="btn btn-secondary mb-3" onclick="window.location.href='/User/Index'">Login</button>
-            <div id="filters" class="mb-4">
-            </div>
-
             <ul>
                 @foreach (var blog in Model)
                 {
@@ -93,10 +90,13 @@
                         <p><small>Category: @blog.Category</small></p>
                         <div class="action-buttons">
                             <a href="/Blogs/Details/@blog.Id" class="btn btn-info btn-sm">Details</a>
-                            <a href="/Blogs/Edit/@blog.Id" class="btn btn-warning btn-sm">Edit</a>
-                            <form method="post" action="/Blogs/Delete/@blog.Id" style="display:inline;">
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this blog?');">Delete</button>
-                            </form>
+                            @if (blog.AuthorId == BlogPostBll.CredentialHelper.UserId)
+                            {
+                                <a href="/Blogs/Edit/@blog.Id" class="btn btn-warning btn-sm blog-@blog.Id">Edit</a>
+                                <form id="deleteForm-@blog.Id">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteBlog('@(blog.Id)')">Delete</button>
+                                </form>
+                            }
                         </div>
                     </li>
                 }
@@ -105,16 +105,109 @@
     </div>
 
     <script>
+        async function deleteBlog(blogId) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You need to be logged in to delete a blog.');
+                return;
+            }
+
+            const confirmation = confirm('Are you sure you want to delete this blog?');
+            if (!confirmation) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Blogs/Delete/${blogId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.message || 'Unable to delete the blog.'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An unexpected error occurred.');
+            }
+        }
+
+        async function checkUserRegistration() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                return false;
+            }
+
+            try {
+                const response = await fetch('/User/IsRegistered', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                return response;
+            } catch (error) {
+                console.error('Error checking user registration:', error);
+                return false;
+            }
+        }
+
+        async function setupPage() {
+            const response = await checkUserRegistration();
+            const isRegistered = response.ok;
+
+            if (isRegistered) {
+                document.getElementById('loginButton').style.display = 'none';
+                document.getElementById('logoutButton').style.display = 'inline';
+                
+            } else {
+                document.getElementById('loginButton').style.display = 'inline';
+                document.getElementById('logoutButton').style.display = 'none';
+            }
+
+            document.getElementById('logoutButton').addEventListener('click', function () {
+                localStorage.removeItem('token');
+                window.location.reload();
+            });
+
+            document.getElementById('createPostButton').addEventListener('click', function () {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('You need to be logged in to create a new post.');
+                    window.location.href = '/User/Login';
+                    return;
+                }
+
+                fetch('/Blogs/Create', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                })
+                .then(() => {
+                    window.location.href = '/Blogs/Create';
+                })
+                .catch(error => {
+                    console.error('Error accessing create post page:', error);
+                    alert('Failed to access the create post page.');
+                });
+            });
+        }
+
         function toggleFilters() {
             const filters = document.getElementById('filters');
-            filters.style.display = filters.style.display === ''  ? 'block' : '';
+            filters.style.display = filters.style.display === '' ? 'block' : '';
         }
-    </script>
 
-    <script>
-    function openPage(url) {        
-        window.location.href = url;
-    }
+        setupPage();
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

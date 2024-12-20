@@ -37,7 +37,7 @@ namespace BlogPost
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = "BlogPost", // Match the issuer from token generation
                     ValidAudience = "BlogPost", // Match the audience from token generation
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("0aK6oXPilC"))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("W65Oo6yyinA7zpMqU_8W_kmdluxadu7MpWndz8ov6qE="))
                 };
             });
 

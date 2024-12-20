@@ -15,7 +15,7 @@ namespace BlogPostBll.Services
             this.context = context;
         }
 
-        public async Task CreateAsync(Guid postId, string text, int authorId)
+        public async Task CreateAsync(Guid postId, string text, Guid authorId)
         {
             var comments = context.GetCollection<BsonDocument>("comments");
 
@@ -23,7 +23,7 @@ namespace BlogPostBll.Services
             {
                 { "_id", Guid.NewGuid().ToString() },
                 { "Text", text },
-                { "AuthorId", authorId },
+                { "AuthorId", authorId.ToString() },
                 { "BlogId", postId.ToString() },
                 { "CreatedAt", DateTime.UtcNow }
             };
@@ -75,7 +75,7 @@ namespace BlogPostBll.Services
             return new Comment
             {
                 Id = Guid.Parse(comment["_id"].ToString()),
-                AuthorId = int.Parse(comment["AuthorId"].ToString()),
+                AuthorId = Guid.Parse(comment["AuthorId"].ToString()),
                 Text = comment["Text"].ToString(),
                 BlogId = Guid.Parse(comment["BlogId"].ToString())
             };
@@ -95,7 +95,7 @@ namespace BlogPostBll.Services
             var result = commentDocuments.Select(doc => new Comment
             {
                 Id = Guid.Parse(doc["_id"].ToString()),
-                AuthorId = int.Parse(doc["AuthorId"].ToString()),
+                AuthorId = Guid.Parse(doc["AuthorId"].ToString()),
                 Text = doc["Text"].ToString(),
                 BlogId = Guid.Parse(doc["BlogId"].ToString())
             });

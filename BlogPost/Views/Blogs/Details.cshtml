@@ -11,76 +11,76 @@
     <style>
         /* Remove spacing between comments but leave space at the bottom */
         .list-group-item {
-            margin-bottom: 0; /* Remove the margin between list items */
-            padding-bottom: 10px; /* Add bottom padding to create space below each comment */
+        margin-bottom: 0; /* Remove the margin between list items */
+        padding-bottom: 10px; /* Add bottom padding to create space below each comment */
         }
 
         .comments-section {
-            margin-bottom: 25px;
+        margin-bottom: 25px;
         }
 
         /* Hide action buttons by default */
         .comment-actions {
-            display: none;
-            position: absolute;
-            right: 10px;
-            top: 15px;
+        display: none;
+        position: absolute;
+        right: 10px;
+        top: 15px;
         }
 
         /* Show action buttons on hover */
         .list-group-item:hover .comment-actions {
-            display: block;
+        display: block;
         }
 
         .comment-container {
-            position: relative;
+        position: relative;
         }
 
         /* Make the textarea editable */
         .editable-text {
-            width: 100%;
-            height: auto;
-            display: none;
-            margin-bottom: 10px;
+        width: 100%;
+        height: auto;
+        display: none;
+        margin-bottom: 10px;
         }
 
         /* Show the Save button in edit mode */
         .edit-mode .editable-text {
-            display: block;
+        display: block;
         }
 
         .edit-mode .comment-text {
-            display: none;
+        display: none;
         }
 
         /* Position the Save button below the editable field */
         .edit-mode .save-btn {
-            display: inline-block;
-            margin-top: 10px;
-            width: 100%; /* Ensure it takes up full width */
+        display: inline-block;
+        margin-top: 10px;
+        width: 100%; /* Ensure it takes up full width */
         }
 
         /* Hide the Edit and Delete buttons in edit mode */
         .edit-mode .edit-btn,
         .edit-mode .delete-btn {
-            display: none;
+        display: none;
         }
 
         /* Show the Edit and Delete buttons after saving */
         .saved-mode .edit-btn,
         .saved-mode .delete-btn {
-            display: inline-block;
+        display: inline-block;
         }
 
         /* Action buttons styling */
         .comment-actions .btn {
-            font-size: 0.9rem;
-            padding: 5px 10px;
+        font-size: 0.9rem;
+        padding: 5px 10px;
         }
 
         /* Space between comment text and buttons */
         .comment-text {
-            margin-bottom: 10px;
+        margin-bottom: 10px;
         }
     </style>
 </head>
@@ -94,10 +94,13 @@
                         <a class="nav-link" href="/Blogs">Home</a>
                     </li>
                 </ul>
-                <a href="/Blogs/Edit/@Model.Id" class="btn btn-warning me-2">Edit</a>
-                <form method="post" action="/Blogs/Delete/@Model.Id" style="display:inline;">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this blog?');">Delete</button>
-                </form>
+                @if (Model.AuthorId == BlogPostBll.CredentialHelper.UserId)
+                {
+                    <a href="/Blogs/Edit/@Model.Id" class="btn btn-warning me-2">Edit</a>
+                    <form id="deleteForm" style="display:inline;">
+                        <button type="button" class="btn btn-danger" onclick="deleteBlog('@(Model.Id)')">Delete</button>
+                    </form>
+                }
             </div>
         </div>
     </nav>
@@ -118,7 +121,7 @@
 
         <!-- Button to create a comment -->
         <h3 class="mt-4">Add a Comment</h3>
-        <form method="post" action="/Comments/Create/@Model.Id">
+        <form id="createComment">
             <div class="mb-3">
                 <label for="Text" class="form-label">Your Comment:</label>
                 <textarea id="Text" name="text" class="form-control" rows="3" required></textarea>
@@ -142,21 +145,24 @@
                             <!-- Editable textarea -->
                             <textarea class="editable-text" rows="3">@comment.Text</textarea>
 
-                            <!-- Action buttons (appear on hover) -->
-                            <div class="comment-actions">
-                                <!-- Edit button -->
-                                <a href="#" class="btn btn-warning btn-sm edit-btn">Edit</a>
+                            @if (comment.AuthorId == BlogPostBll.CredentialHelper.UserId)
+                            {
+                                <!-- Action buttons (appear on hover) -->
+                                <div class="comment-actions">
+                                    <!-- Edit button -->
+                                    <a href="#" class="btn btn-warning btn-sm edit-btn">Edit</a>
 
-                                <!-- Delete button -->
-                                <form method="post" action="/Comments/Delete/@comment.Id" style="display:inline;">
-                                    <button type="submit" class="btn btn-danger btn-sm delete-btn">Delete</button>
-                                </form>
-                            </div>
+                                    <!-- Delete button -->
+                                    <form method="post" action="/Comments/Delete/@comment.Id" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm delete-btn">Delete</button>
+                                    </form>
+                                </div>
 
-                            <div class="comment-save">
-                                <!-- Save button appears after edit -->
-                                <button type="button" class="btn btn-success btn-sm save-btn" style="display:none;">Save</button>
-                            </div>
+                                <div class="comment-save">
+                                    <!-- Save button appears after edit -->
+                                    <button type="button" class="btn btn-success btn-sm save-btn" style="display:none;">Save</button>
+                                </div>
+                            }
                         </li>
                     }
                 </ul>
@@ -170,6 +176,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Function to get the token from localStorage
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+
         // Edit button click handler
         document.querySelectorAll('.edit-btn').forEach(button => {
             button.addEventListener('click', function(e) {
@@ -207,11 +218,18 @@
                 const authorId = commentContainer.getAttribute('data-author-id');
                 const editButton = commentContainer.querySelector('.edit-btn');
                 const deleteButton = commentContainer.querySelector('.delete-btn');
+                const token = getToken();
+
+                if (!token) {
+                    alert('You need to be logged in to edit this comment.');
+                    return;
+                }
 
                 // Send POST request to save edited comment
                 fetch('/Comments/Edit', {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ commentId: commentId, text: text }),
@@ -243,17 +261,25 @@
             });
         });
 
+        // Delete button click handler
         document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
 
                 const commentContainer = this.closest('.comment-container');
                 const commentId = commentContainer.getAttribute('data-comment-id');
+                const token = getToken();
+
+                if (!token) {
+                    alert('You need to be logged in to delete this comment.');
+                    return;
+                }
 
                 if (confirm('Are you sure you want to delete this comment?')) {
                     fetch(`/Comments/Delete?commentId=${commentId}`, {
                         method: 'POST',
                         headers: {
+                            'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
                         },
                     })
@@ -278,6 +304,71 @@
                 }
             });
         });
+
+        // Create comment function
+        document.querySelector('#createComment').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const text = document.getElementById('Text').value;
+            const token = getToken();
+
+            if (!token) {
+                alert('You need to be logged in to create a comment.');
+                return;
+            }
+
+            fetch('/Comments/Create', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ blogId: '@(Model.Id)', text: text }),
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload(); // Reload to show the new comment
+                } else {
+                    alert('Failed to create comment');
+                }
+            })
+            .catch(err => {
+                alert('Error: ' + err);
+            });
+        });
+
+            async function deleteBlog(blogId) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You need to be logged in to delete this blog.');
+                return;
+            }
+
+            const confirmation = confirm('Are you sure you want to delete this blog?');
+            if (!confirmation) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Blogs/Delete/${blogId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    window.location.href = '/Blogs'; // Redirect after successful delete
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.message || 'Unable to delete the blog.'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An unexpected error occurred.');
+            }
+        }
     </script>
 </body>
 </html>

@@ -12,6 +12,6 @@ namespace BlogPostBll.Models
 
         public CategoryEnum Category { get; set; }
 
-        public int AuthorId { get; set; }
+        public Guid AuthorId { get; set; }
     }
 }

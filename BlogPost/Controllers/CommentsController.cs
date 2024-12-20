@@ -1,29 +1,37 @@
 ﻿using BlogPost.Models.Comments;
 using BlogPostBll.Interfaces;
+using BlogPostBll.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BlogPost.Controllers
 {
     public class CommentsController : Controller
     {
         private readonly ICommentsService commentsService;
+        private readonly IUserService userService;
 
-        public CommentsController(ICommentsService commentsService)
+        public CommentsController(ICommentsService commentsService, IUserService userService)
         {
             this.commentsService = commentsService;
+            this.userService = userService;
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Create(Guid id, string text)
+        public async Task<IActionResult> Create([FromBody] CommentCreateModel commentCreateModel)
         {
-            await commentsService.CreateAsync(id, text, 1);
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
-            return RedirectToAction("Details", controllerName: "Blogs", new { id });
+            var userId = await userService.GetUserIdByEmailAsync(userEmail);
+
+            await commentsService.CreateAsync(commentCreateModel.BlogId, commentCreateModel.Text, userId);
+
+            return RedirectToAction("Details", controllerName: "Blogs", new { id = commentCreateModel.BlogId });
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Edit([FromBody] CommentEditModel commentEdit)
         {
@@ -32,7 +40,7 @@ namespace BlogPost.Controllers
             return Ok();
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete([FromQuery] Guid commentId)
         {

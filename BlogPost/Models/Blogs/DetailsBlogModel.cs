@@ -14,5 +14,7 @@ namespace BlogPost.Models.Blogs
         public CategoryEnum Category { get; set; }
 
         public IEnumerable<Comment> Comments { get; set; }
+
+        public Guid AuthorId { get; set; }
     }
 }

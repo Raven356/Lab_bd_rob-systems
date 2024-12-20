@@ -26,7 +26,7 @@ namespace BlogPostBll.Services
                 { "Title", newBlog.Title },
                 { "Text", newBlog.Text },
                 { "Category", newBlog.Category.ToString() },
-                { "AuthorId", newBlog.AuthorId },
+                { "AuthorId", newBlog.AuthorId.ToString() },
                 { "CreatedAt", DateTime.UtcNow }
             };
 
@@ -60,7 +60,6 @@ namespace BlogPostBll.Services
                 .Set("Title", editBlog.Title)
                 .Set("Text", editBlog.Text)
                 .Set("Category", editBlog.Category.ToString())
-                .Set("AuthorId", editBlog.AuthorId)
                 .Set("CreatedAt", DateTime.UtcNow);
 
             var result = await blogs.UpdateOneAsync(
@@ -100,7 +99,7 @@ namespace BlogPostBll.Services
                 Title = doc["Title"].ToString(),
                 Text = doc["Text"].ToString(),
                 Category = Enum.Parse<CategoryEnum>(doc["Category"].ToString()),
-                AuthorId = int.Parse(doc["AuthorId"].ToString())
+                AuthorId = Guid.Parse(doc["AuthorId"].ToString())
             });
 
             return result;
@@ -123,7 +122,7 @@ namespace BlogPostBll.Services
                 Title = blogDocument["Title"].ToString(),
                 Text = blogDocument["Text"].ToString(),
                 Category = Enum.Parse<CategoryEnum>(blogDocument["Category"].ToString()),
-                AuthorId = int.Parse(blogDocument["AuthorId"].ToString()),
+                AuthorId = Guid.Parse(blogDocument["AuthorId"].ToString()),
             };
 
             return blog;

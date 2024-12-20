@@ -11,7 +11,5 @@ namespace BlogPost.Models.Blogs
         public string Title { get; set; }
 
         public CategoryEnum Category { get; set; }
-
-        public int AuthorId { get; set; }
     }
 }

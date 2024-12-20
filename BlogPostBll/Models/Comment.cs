@@ -4,7 +4,7 @@
     {
         public Guid Id { get; set; }
 
-        public int AuthorId { get; set; }
+        public Guid AuthorId { get; set; }
 
         public Guid BlogId { get; set; }
 

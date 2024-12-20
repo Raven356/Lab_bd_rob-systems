@@ -1,6 +1,7 @@
 ﻿using BlogPost.Mappers;
 using BlogPost.Models.Users;
 using BlogPostBll.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -18,13 +19,13 @@ namespace BlogPost.Controllers
             this.userService = userService;
         }
 
-        public IActionResult Index()
+        public IActionResult Login()
         {
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginModel loginModel)
+        public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
         {
             bool result = await userService.LoginAsync(UserMapper.Map(loginModel));
 
@@ -42,20 +43,43 @@ namespace BlogPost.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterModel registerModel)
         {
-            await userService.RegisterAsync(UserMapper.Map(registerModel));
+            if (!ModelState.IsValid)
+            {
+                return View(registerModel);
+            }
 
-            return Ok();
+            var result = await userService.RegisterAsync(UserMapper.Map(registerModel));
+
+            if (result)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+            else
+            {
+                ModelState.AddModelError("", "A user with this email already exists.");
+                return View(registerModel);
+            }
+        }
+
+
+        public IActionResult Register()
+        {         
+            return View(new RegisterModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register()
-        {         
-            return View();
+        [Authorize]
+        public async Task<IActionResult> IsRegistered()
+        {
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+
+            var userId = await userService.GetUserIdByEmailAsync(userEmail);
+            return Ok(new { Message = "User is authenticated.", userId });
         }
 
         private string GenerateJwtToken(string email)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("0aK6oXPilC")); // Replace with your secret key
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("W65Oo6yyinA7zpMqU_8W_kmdluxadu7MpWndz8ov6qE=")); // Replace with your secret key
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]

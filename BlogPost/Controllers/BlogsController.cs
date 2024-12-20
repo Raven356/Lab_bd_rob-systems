@@ -4,6 +4,7 @@ using BlogPostBll.Enums;
 using BlogPostBll.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BlogPost.Controllers
 {
@@ -11,11 +12,13 @@ namespace BlogPost.Controllers
     {
         private readonly IBlogService blogService;
         private readonly ICommentsService commentsService;
+        private readonly IUserService userService;
 
-        public BlogsController(IBlogService blogService, ICommentsService commentsService)
+        public BlogsController(IBlogService blogService, ICommentsService commentsService, IUserService userService)
         {
             this.blogService = blogService;
             this.commentsService = commentsService;
+            this.userService = userService;
         }
 
         public async Task<IActionResult> Index(string? name, string? category)
@@ -27,22 +30,27 @@ namespace BlogPost.Controllers
             return View(blogs);
         }
 
-        //[Authorize]
         public IActionResult Create()
         {
             ViewBag.Categories = Enum.GetValues(typeof(CategoryEnum));
             return View();
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Create(CreateBlogModel createBlogModel)
+        public async Task<IActionResult> Create([FromBody] CreateBlogModel createBlogModel)
         {
-            var newBlogId = await blogService.CreateBlogAsync(BlogMapper.Map(createBlogModel));
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+
+            var userId = await userService.GetUserIdByEmailAsync(userEmail);
+
+            var blog = BlogMapper.Map(createBlogModel);
+            blog.AuthorId = userId;
+
+            var newBlogId = await blogService.CreateBlogAsync(blog);
             return RedirectToAction("Details", new { id = newBlogId });
         }
 
-        //[Authorize]
         public async Task<IActionResult> Edit(Guid id)
         {
             var blog = await blogService.GetByIdAsync(id);
@@ -50,7 +58,6 @@ namespace BlogPost.Controllers
 
             var viewModel = new EditBlogModel
             {
-                AuthorId = blog.AuthorId,
                 Category = blog.Category,
                 Id = id,
                 Text = blog.Text,
@@ -60,11 +67,18 @@ namespace BlogPost.Controllers
             return View(viewModel);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Edit(EditBlogModel editBlogModel)
+        public async Task<IActionResult> Edit([FromBody] EditBlogModel editBlogModel)
         {
-            var id = await blogService.EditBlogAsync(BlogMapper.Map(editBlogModel));
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+
+            var userId = await userService.GetUserIdByEmailAsync(userEmail);
+
+            var blog = BlogMapper.Map(editBlogModel);
+            blog.AuthorId = userId;
+
+            var id = await blogService.EditBlogAsync(blog);
 
             return RedirectToAction("Details", new { id });
         }
@@ -80,11 +94,12 @@ namespace BlogPost.Controllers
                 Category = blog.Category,
                 Text = blog.Text,
                 Title = blog.Title,
-                Comments = comments
+                Comments = comments,
+                AuthorId = blog.AuthorId
             });
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete(Guid id) 
         {
