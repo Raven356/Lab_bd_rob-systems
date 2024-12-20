@@ -7,36 +7,41 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
         ul {
-        list-style-type: none;
-        padding: 0;
+            list-style-type: none;
+            padding: 0;
         }
 
         li {
-        position: relative;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 10px;
-        transition: background-color 0.3s;
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
         }
 
-        li:hover {
-        background-color: #f8f9fa;
-        }
+            li:hover {
+                background-color: #f8f9fa;
+            }
 
-        li .action-buttons {
-        display: none;
-        position: absolute;
-        right: 10px;
-        top: 15px;
-        }
+            li .action-buttons {
+                display: none;
+                position: absolute;
+                right: 10px;
+                top: 15px;
+            }
 
-        li:hover .action-buttons {
-        display: block;
-        }
+            li:hover .action-buttons {
+                display: flex;
+                gap: 5px; /* Adds spacing between the buttons */
+            }
+
+            li .action-buttons a, li .action-buttons button {
+                margin-bottom: 0; /* Ensures buttons align properly without extra bottom margin */
+            }
 
         #filters {
-        display: none;
+            display: none;
         }
     </style>
 </head>
@@ -50,7 +55,7 @@
                         <a class="nav-link" href="/Blogs">Home</a>
                     </li>
                 </ul>
-                <a id="createPostButton" class="btn btn-primary">Create New Post</a>
+                <a id="createPostButton" class="btn btn-primary ms-3">Create New Post</a>
                 <a id="loginButton" class="btn btn-secondary" href="/User/Login">Login</a>
                 <a id="logoutButton" class="btn btn-danger" style="display: none;">Logout</a>
             </div>
@@ -92,7 +97,7 @@
                             <a href="/Blogs/Details/@blog.Id" class="btn btn-info btn-sm">Details</a>
                             @if (blog.AuthorId == BlogPostBll.CredentialHelper.UserId)
                             {
-                                <a href="/Blogs/Edit/@blog.Id" class="btn btn-warning btn-sm blog-@blog.Id">Edit</a>
+                                <a href="/Blogs/Edit/@blog.Id" class="btn btn-warning btn-sm">Edit</a>
                                 <form id="deleteForm-@blog.Id">
                                     <button type="button" class="btn btn-danger btn-sm" onclick="deleteBlog('@(blog.Id)')">Delete</button>
                                 </form>
@@ -167,7 +172,7 @@
             if (isRegistered) {
                 document.getElementById('loginButton').style.display = 'none';
                 document.getElementById('logoutButton').style.display = 'inline';
-                
+
             } else {
                 document.getElementById('loginButton').style.display = 'inline';
                 document.getElementById('logoutButton').style.display = 'none';
